@@ -36,7 +36,7 @@ let sequentialUnique = [
 
 arrayUniqueByKey = arrayUniqueByKey.filter(sc => sc.id.startsWith('_'));
 sequentialUnique = sequentialUnique.filter(sc => !sc.id.startsWith('_'))
-console.log('bulletColors', sequentialUnique);
+// console.log('bulletColors', sequentialUnique);
 const config: ControlPanelConfig = {
   /**
    * The control panel is split into two tabs: "Query" and

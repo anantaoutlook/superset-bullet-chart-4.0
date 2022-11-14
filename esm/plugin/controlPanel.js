@@ -26,8 +26,8 @@ var categoricalSchemeRegistry = getCategoricalSchemeRegistry();
 var arrayUniqueByKey = [...new Map(categoricalSchemeRegistry.values().map(item => [item.id, item])).values()];
 var sequentialUnique = [...new Map(categoricalSchemeRegistry.values().map(item => [item.id, item])).values()];
 arrayUniqueByKey = arrayUniqueByKey.filter(sc => sc.id.startsWith('_'));
-sequentialUnique = sequentialUnique.filter(sc => !sc.id.startsWith('_'));
-console.log('bulletColors', sequentialUnique);
+sequentialUnique = sequentialUnique.filter(sc => !sc.id.startsWith('_')); // console.log('bulletColors', sequentialUnique);
+
 var config = {
   /**
    * The control panel is split into two tabs: "Query" and

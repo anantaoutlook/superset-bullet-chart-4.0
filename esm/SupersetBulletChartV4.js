@@ -50,21 +50,28 @@ export default function SupersetBulletChartV4(props) {
     height,
     colorScheme,
     width,
-    orderDesc
+    orderDesc,
+    bulletColorScheme
   } = props;
   console.log('props', props); // console.log('props', props);
 
   var totals = 0; // custom colors theme
 
   var customColors;
+  var legendColors;
   var svgRef = /*#__PURE__*/createRef();
   var colorsValues = categorialSchemeRegistry.values(); // console.log('colorsValues', colorsValues);
   // console.log('colorScheme', colorScheme);
 
-  var filterColors = colorsValues.filter(c => c.id === colorScheme); // console.log('filterColors', filterColors);
+  var filterColors = colorsValues.filter(c => c.id === colorScheme);
+  var findLegendColorScheme = colorsValues.filter(c => c.id === bulletColorScheme); // console.log('filterColors', filterColors);
 
   if (filterColors[0]) {
     customColors = [...filterColors[0].colors];
+  }
+
+  if (findLegendColorScheme[0]) {
+    legendColors = [...findLegendColorScheme[0].colors];
   } // let selectedOption = "chart";
 
 
@@ -123,7 +130,7 @@ export default function SupersetBulletChartV4(props) {
     var h = height - margin.top - margin.bottom;
     var halfBarHeight = barHeight;
     var lineHeight = 1.1;
-    var legendBulletColor = ['#ff5a5f', '#7b0051', '#007A87', '#00d1c1', '#8ce071', '#ffb400', '#b4a76c', '#ff8083', '#cc0086', '#00a1b3', '#00ffeb', '#bbedab', '#ffd266', '#cbc29a', '#ff3339', '#ff1ab1', '#005c66', '#00b3a5', '#55d12e', '#b37e00', '#988b4e']; //
+    var legendBulletColor = legendColors; //
 
     var getMetricPossible = data => {
       var rectangles = selection.selectAll('rect') || null;
@@ -217,28 +224,48 @@ export default function SupersetBulletChartV4(props) {
     }
 
     var uniqueMatricValue = createUniqueMatricValue();
-    console.log('uniqueMatricValue', uniqueMatricValue);
     var resultset = creatUniqueArray();
-    var uniqueCompanies = createCompanyArray();
-    /* const mergeCompanyColor = () => {
-     for (let uniqueCompanyindex = 0; uniqueCompanyindex < uniqueCompanies.length; uniqueCompanyindex++) {
-      for (let iniqueMatricIndex = 0; iniqueMatricIndex < uniqueMatricValue.length; iniqueMatricIndex++) {
-        uniqueCompanies[uniqueCompanyindex].metricvalue === uniqueMatricValue[iniqueMatricIndex].metricvalue ? uniqueCompanies[uniqueCompanyindex].color : uniqueCompanies[uniqueCompanyindex].color;
-      }
-     }
-    }
-    mergeCompanyColor(); */
+    var uniqueCompanies = createCompanyArray(); // set indicator color same as company color
 
     var getIndicatorColor = data => {
-      var findMatricValue = uniqueMatricValue.filter(d => d.metricvalue === data.metricvalue);
-      return findMatricValue.length > 0 ? findMatricValue[0].color : '';
+      var findMatricValue = uniqueMatricValue.filter(d => d.metricvalue === data.metricpossible);
+      console.log('findMatricValue', findMatricValue);
+
+      if (findMatricValue.length === 1) {
+        return findMatricValue[0].color;
+      } else if (findMatricValue.length === 2) {
+        return findMatricValue[1].color;
+      } else if (findMatricValue.length === 3) {
+        return findMatricValue[2].color;
+      } else {
+        return '';
+      }
     };
 
-    console.log('uniqueCompanies', uniqueCompanies);
+    var getIndicatorColorOne = data => {
+      var matchingMatricValue = uniqueCompanies.filter(d => d.metricvalue === data.metricpossible);
+      return matchingMatricValue.length === 2 ? matchingMatricValue[1].color : '';
+    };
+
+    var getIndicatorColorTwo = data => {
+      var matchingMatricValue = uniqueMatricValue.filter(d => d.metricvalue === data.metricpossible);
+      return matchingMatricValue.length === 3 ? matchingMatricValue[2].color : '';
+    }; // draw indicator conditionally
+
 
     var getCompanyIndicator = data => {
       var matchingMatricValue = uniqueCompanies.filter(d => d.metricvalue === data.metricpossible);
       return matchingMatricValue.length > 0 ? matchingMatricValue[0] : {};
+    };
+
+    var getCompanyIndicatorOne = data => {
+      var matchingMatricValue = uniqueCompanies.filter(d => d.metricvalue === data.metricpossible);
+      return matchingMatricValue.length === 2 ? matchingMatricValue[1] : {};
+    };
+
+    var getCompanyIndicatorTwo = data => {
+      var matchingMatricValue = uniqueCompanies.filter(d => d.metricvalue === data.metricpossible);
+      return matchingMatricValue.length === 3 ? matchingMatricValue[2] : {};
     };
 
     var total = d3.sum(resultset, d => d.metricpossiblevalues);
@@ -315,11 +342,12 @@ export default function SupersetBulletChartV4(props) {
     d3.selectAll('rect').remove();
     selection.selectAll('rect').data(_data).enter().append('rect').attr('class', 'rect-stacked').attr('x', d => xScale(d.cumulative) - 12).attr('y', h / 2 - halfBarHeight).attr('height', barHeight).attr('width', d => xScale(d.metricpossiblevalues)).style('fill', (d, i) => customColors[i + 4]).text(d => f(d.percent) < 5 ? f(d.percent) + '%, ' + ' ' + d.metricpossible : f(d.percent) + '%'); // add image on top of bar(indicator)
 
-    d3.selectAll('.text-value').remove();
-    selection.selectAll('.text-value').data(_data).enter().append('text').attr('class', 'text-value').attr('text-anchor', 'middle').attr('font-size', '14px') // .style('fill', (d: any, i) => d.color)
-    .style('fill', (d, i) => getIndicatorColor(d)) // .style('fill', (d, i) => legendBulletColor[checkCompanyExist(d, i)])
-    // .style('fill', (d, i) => customColors[customColors.length - 3])
-    .attr('x', d => xScale(d.cumulative) + xScale(d.metricpossiblevalues) / 2 - 12).attr('y', h / 2 - halfBarHeight * 1.1).text(d => getCompanyIndicator(d).metricvalue === d.metricpossible ? '▼' : ''); // add some labels for percentages
+    d3.selectAll('.indicator-row-one').remove();
+    selection.selectAll('.indicator-row-one').data(_data).enter().append('text').attr('class', 'indicator-row-one').attr('text-anchor', 'middle').attr('font-size', '14px').style('fill', (d, i) => getIndicatorColor(d)).attr('x', d => xScale(d.cumulative) + xScale(d.metricpossiblevalues) / 2 - 12).attr('y', (d, i) => h / 2 - halfBarHeight * 1.1).text(d => getCompanyIndicator(d).metricvalue === d.metricpossible ? '▼' : '');
+    d3.selectAll('.indicator-row-two').remove();
+    selection.selectAll('.indicator-row-two').data(_data).enter().append('text').attr('class', 'indicator-row-two').attr('text-anchor', 'middle').attr('font-size', '14px').style('fill', (d, i) => getIndicatorColorOne(d)).attr('x', d => xScale(d.cumulative) + xScale(d.metricpossiblevalues) / 2 - 12).attr('y', (d, i) => h / 2 - halfBarHeight * 1.4).text(d => getCompanyIndicatorOne(d).metricvalue === d.metricpossible ? '▼' : '');
+    d3.selectAll('.indicator-row-three').remove();
+    selection.selectAll('.indicator-row-three').data(_data).enter().append('text').attr('class', 'indicator-row-three').attr('text-anchor', 'middle').attr('font-size', '14px').style('fill', (d, i) => getIndicatorColorTwo(d)).attr('x', d => xScale(d.cumulative) + xScale(d.metricpossiblevalues) / 2 - 12).attr('y', (d, i) => h / 2 - halfBarHeight * 1.7).text(d => getCompanyIndicatorTwo(d).metricvalue === d.metricpossible ? '▼' : ''); // add some labels for percentages
 
     d3.selectAll('.text-percent').remove();
     selection.selectAll('.text-percent').data(_data).enter().append('text').attr('class', 'text-percent').attr('text-anchor', 'middle').attr('font-size', '11px').attr('x', d => xScale(d.cumulative) + xScale(d.metricpossiblevalues) / 2 - 12).attr('y', h / 2 - halfBarHeight / 2.5).text(d => f(d.percent) > 5 ? f(d.percent) + '%' : ''); // add the labels bellow bar
@@ -340,11 +368,11 @@ export default function SupersetBulletChartV4(props) {
 
     var size = 10;
     d3.selectAll('legend-circle').remove();
-    selection.selectAll(".legend-circle").data(uniqueCompanies).enter().append("rect").attr("x", width - 230).attr("y", (d, i) => height - 80 + i * (size + 5)) // 100 is where the first dot appears. 25 is the distance between dots
+    selection.selectAll(".legend-circle").data(uniqueCompanies).enter().append("rect").attr("x", width - 230).attr("y", (d, i) => height - 100 + i * (size + 5)) // 100 is where the first dot appears. 25 is the distance between dots
     .attr("width", size).attr("height", size).style("fill", (d, index) => d.color); // Add one dot in the legend for each name.
 
     d3.selectAll('.legend-label').remove();
-    selection.selectAll(".legend-label").data(uniqueCompanies).enter().append("text").attr('class', 'legend-label').attr('font-size', '11px').attr("x", width - 225 + size * 1.2).attr("y", (d, i) => height - 72 + i * (size + 6)) // 100 is where the first dot appears. 25 is the distance between dots
+    selection.selectAll(".legend-label").data(uniqueCompanies).enter().append("text").attr('class', 'legend-label').attr('font-size', '11px').attr("x", width - 225 + size * 1.2).attr("y", (d, i) => height - 92 + i * (size + 6)) // 100 is where the first dot appears. 25 is the distance between dots
     .style("fill", (d, index) => d.color) // .text((d: any) => d.company + ':' + d.metricvalue)
     .text(d => d.company).attr("text-anchor", "left");
   };

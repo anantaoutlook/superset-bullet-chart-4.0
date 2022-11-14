@@ -50,13 +50,14 @@ const categorialSchemeRegistry = getCategoricalSchemeRegistry();
 export default function SupersetBulletChartV4(props: SupersetBulletChartV4Props) {
   // height and width are the height and width of the DOM element as it exists in the dashboard.
   // There is also a `data` prop, which is, of course, your DATA 🎉
-  const { data, height, colorScheme, width, orderDesc } = props;
+  const { data, height, colorScheme, width, orderDesc, bulletColorScheme } = props;
   console.log('props', props);
   // console.log('props', props);
 
   let totals = 0;
   // custom colors theme
   let customColors: string[];
+  let legendColors: string[];
   const svgRef = createRef<SVGSVGElement>();
   const colorsValues = categorialSchemeRegistry.values();
   // console.log('colorsValues', colorsValues);
@@ -64,9 +65,15 @@ export default function SupersetBulletChartV4(props: SupersetBulletChartV4Props)
   const filterColors: any = colorsValues.filter(
     (c: any) => c.id === colorScheme,
   );
+  const findLegendColorScheme: any = colorsValues.filter(
+    (c: any) => c.id === bulletColorScheme,
+  );
   // console.log('filterColors', filterColors);
   if (filterColors[0]) {
     customColors = [...filterColors[0].colors];
+  }
+  if (findLegendColorScheme[0]) {
+    legendColors = [...findLegendColorScheme[0].colors];
   }
   // let selectedOption = "chart";
 
@@ -115,29 +122,7 @@ export default function SupersetBulletChartV4(props: SupersetBulletChartV4Props)
     const h = height - margin.top - margin.bottom
     const halfBarHeight = barHeight;
     const lineHeight = 1.1;
-    const legendBulletColor = [
-      '#ff5a5f',
-      '#7b0051',
-      '#007A87',
-      '#00d1c1',
-      '#8ce071',
-      '#ffb400',
-      '#b4a76c',
-      '#ff8083',
-      '#cc0086',
-      '#00a1b3',
-      '#00ffeb',
-      '#bbedab',
-      '#ffd266',
-      '#cbc29a',
-      '#ff3339',
-      '#ff1ab1',
-      '#005c66',
-      '#00b3a5',
-      '#55d12e',
-      '#b37e00',
-      '#988b4e',
-    ];
+    const legendBulletColor = legendColors;
 
     //
     const getMetricPossible = (data: any) => {
@@ -229,28 +214,49 @@ export default function SupersetBulletChartV4(props: SupersetBulletChartV4Props)
       return distinct;
     }
     const uniqueMatricValue = createUniqueMatricValue();
-    console.log('uniqueMatricValue', uniqueMatricValue);
-
 
     const resultset = creatUniqueArray();
     const uniqueCompanies = createCompanyArray();
-    /* const mergeCompanyColor = () => {
-     for (let uniqueCompanyindex = 0; uniqueCompanyindex < uniqueCompanies.length; uniqueCompanyindex++) {
-      for (let iniqueMatricIndex = 0; iniqueMatricIndex < uniqueMatricValue.length; iniqueMatricIndex++) {
-        uniqueCompanies[uniqueCompanyindex].metricvalue === uniqueMatricValue[iniqueMatricIndex].metricvalue ? uniqueCompanies[uniqueCompanyindex].color : uniqueCompanies[uniqueCompanyindex].color;
-      }
-     }
-    }
-    mergeCompanyColor(); */
+
+    // set indicator color same as company color
     const getIndicatorColor = (data: any) => {
-      const findMatricValue = uniqueMatricValue.filter((d: any) => d.metricvalue === data.metricvalue);
-      return findMatricValue.length > 0 ? findMatricValue[0].color : '';
+      const findMatricValue = uniqueMatricValue.filter((d: any) => d.metricvalue === data.metricpossible);
+      console.log('findMatricValue', findMatricValue);
+      if (findMatricValue.length === 1) {
+        return findMatricValue[0].color;
+      } else if (findMatricValue.length === 2) {
+        return findMatricValue[1].color;
+      } else if (findMatricValue.length === 3) {
+        return findMatricValue[2].color;
+      } else {
+        return '';
+      }
     }
-    console.log('uniqueCompanies', uniqueCompanies);
+
+    const getIndicatorColorOne = (data: any) => {
+      const matchingMatricValue = uniqueCompanies.filter((d: any) => d.metricvalue === data.metricpossible);
+      return matchingMatricValue.length === 2 ? matchingMatricValue[1].color : '';
+    }
+
+    const getIndicatorColorTwo = (data: any) => {
+      const matchingMatricValue = uniqueMatricValue.filter((d: any) => d.metricvalue === data.metricpossible);
+      return matchingMatricValue.length === 3 ? matchingMatricValue[2].color : '';
+    }
+
+    // draw indicator conditionally
     const getCompanyIndicator = (data: any) => {
       const matchingMatricValue = uniqueCompanies.filter((d: any) => d.metricvalue === data.metricpossible);
       return matchingMatricValue.length > 0 ? matchingMatricValue[0] : {};
     }
+    const getCompanyIndicatorOne = (data: any) => {
+      const matchingMatricValue = uniqueCompanies.filter((d: any) => d.metricvalue === data.metricpossible);
+      return matchingMatricValue.length === 2 ? matchingMatricValue[1] : {};
+    }
+    const getCompanyIndicatorTwo = (data: any) => {
+      const matchingMatricValue = uniqueCompanies.filter((d: any) => d.metricvalue === data.metricpossible);
+      return matchingMatricValue.length === 3 ? matchingMatricValue[2] : {};
+    }
+
     const total = d3.sum(resultset, (d: any) => d.metricpossiblevalues);
     totals = total;
     orderDesc ? resultset.sort((a: any, b: any) => a.orderby - b.orderby) : resultset.sort((a: any, b: any) => b.orderby - a.orderby);
@@ -342,20 +348,41 @@ export default function SupersetBulletChartV4(props: SupersetBulletChartV4Props)
 
 
     // add image on top of bar(indicator)
-    d3.selectAll('.text-value').remove();
-    selection.selectAll('.text-value')
+    d3.selectAll('.indicator-row-one').remove();
+    selection.selectAll('.indicator-row-one')
       .data(_data)
       .enter().append('text')
-      .attr('class', 'text-value')
+      .attr('class', 'indicator-row-one')
       .attr('text-anchor', 'middle')
       .attr('font-size', '14px')
-      // .style('fill', (d: any, i) => d.color)
       .style('fill', (d: any, i) => getIndicatorColor(d))
-      // .style('fill', (d, i) => legendBulletColor[checkCompanyExist(d, i)])
-      // .style('fill', (d, i) => customColors[customColors.length - 3])
       .attr('x', (d: any) => (xScale(d.cumulative)! + (xScale(d.metricpossiblevalues)!) / 2) - 12)
-      .attr('y', (h / 2) - (halfBarHeight * 1.1))
+      .attr('y', (d: any, i) => ((h / 2) - (halfBarHeight * 1.1)))
       .text((d: any) => getCompanyIndicator(d).metricvalue === d.metricpossible ? '▼' : '');
+
+    d3.selectAll('.indicator-row-two').remove();
+    selection.selectAll('.indicator-row-two')
+      .data(_data)
+      .enter().append('text')
+      .attr('class', 'indicator-row-two')
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '14px')
+      .style('fill', (d: any, i) => getIndicatorColorOne(d))
+      .attr('x', (d: any) => (xScale(d.cumulative)! + (xScale(d.metricpossiblevalues)!) / 2) - 12)
+      .attr('y', (d: any, i) => ((h / 2) - (halfBarHeight * 1.4)))
+      .text((d: any) => getCompanyIndicatorOne(d).metricvalue === d.metricpossible ? '▼' : '');
+
+    d3.selectAll('.indicator-row-three').remove();
+    selection.selectAll('.indicator-row-three')
+      .data(_data)
+      .enter().append('text')
+      .attr('class', 'indicator-row-three')
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '14px')
+      .style('fill', (d: any, i) => getIndicatorColorTwo(d))
+      .attr('x', (d: any) => (xScale(d.cumulative)! + (xScale(d.metricpossiblevalues)!) / 2) - 12)
+      .attr('y', (d: any, i) => ((h / 2) - (halfBarHeight * 1.7)))
+      .text((d: any) => getCompanyIndicatorTwo(d).metricvalue === d.metricpossible ? '▼' : '');
 
     // add some labels for percentages
     d3.selectAll('.text-percent').remove();
@@ -420,7 +447,7 @@ export default function SupersetBulletChartV4(props: SupersetBulletChartV4Props)
       .enter()
       .append("rect")
       .attr("x", (width - 230))
-      .attr("y", (d: any, i: any) => (height - 80) + i * (size + 5)) // 100 is where the first dot appears. 25 is the distance between dots
+      .attr("y", (d: any, i: any) => (height - 100) + i * (size + 5)) // 100 is where the first dot appears. 25 is the distance between dots
       .attr("width", size)
       .attr("height", size)
       .style("fill", (d: any, index: any) => d.color);
@@ -434,7 +461,7 @@ export default function SupersetBulletChartV4(props: SupersetBulletChartV4Props)
       .attr('class', 'legend-label')
       .attr('font-size', '11px')
       .attr("x", (width - 225) + size * 1.2)
-      .attr("y", (d: any, i: any) => (height - 72) + i * (size + 6)) // 100 is where the first dot appears. 25 is the distance between dots
+      .attr("y", (d: any, i: any) => (height - 92) + i * (size + 6)) // 100 is where the first dot appears. 25 is the distance between dots
       .style("fill", (d: any, index: any) => d.color)
       // .text((d: any) => d.company + ':' + d.metricvalue)
       .text((d: any) => d.company)
