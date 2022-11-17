@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React, { useEffect, useState, createRef } from 'react';
+import React, { useEffect, createRef } from 'react';
 import { getCategoricalSchemeRegistry } from '@superset-ui/core';
 import * as d3 from 'd3';
 import * as d3Scale from 'd3-scale';
@@ -26,7 +26,7 @@ var categorialSchemeRegistry = getCategoricalSchemeRegistry(); // The following 
 // imported from @superset-ui/core. For variables available, please visit
 // https://github.com/apache-superset/superset-ui/blob/master/packages/superset-ui-core/src/style/index.ts
 
-/* const Styles = styled.div<SupersetBulletChartV4StylesProps>`
+/* const Styles = styled.div<Superset2CustomChartBulletStylesProps>`
   background-color: ${({ theme }) => theme.colors.secondary.light5};
    padding: ${({ theme }) => theme.gridUnit * 4}px;
    border-radius: ${({ theme }) => theme.gridUnit * 2}px;
@@ -42,7 +42,7 @@ var categorialSchemeRegistry = getCategoricalSchemeRegistry(); // The following 
  *  * FormData (your controls!) provided as props by transformProps.ts
  */
 
-export default function SupersetBulletChartV4(props) {
+export default function Superset2CustomChartBullet(props) {
   // height and width are the height and width of the DOM element as it exists in the dashboard.
   // There is also a `data` prop, which is, of course, your DATA 🎉
   var {
@@ -53,64 +53,48 @@ export default function SupersetBulletChartV4(props) {
     orderDesc,
     bulletColorScheme
   } = props;
-  console.log('props', props); // console.log('props', props);
-
-  var totals = 0; // custom colors theme
-
-  var customColors;
-  var legendColors;
-  var svgRef = /*#__PURE__*/createRef();
-  var colorsValues = categorialSchemeRegistry.values(); // console.log('colorsValues', colorsValues);
-  // console.log('colorScheme', colorScheme);
-
-  var filterColors = colorsValues.filter(c => c.id === colorScheme);
-  var findLegendColorScheme = colorsValues.filter(c => c.id === bulletColorScheme); // console.log('filterColors', filterColors);
-
-  if (filterColors[0]) {
-    customColors = [...filterColors[0].colors];
-  }
-
-  if (findLegendColorScheme[0]) {
-    legendColors = [...findLegendColorScheme[0].colors];
-  } // let selectedOption = "chart";
-
-
-  var onSiteChanged = (type, value) => {
-    setType({
-      selectedOption: value,
-      totals: totals
-    });
-  };
-
-  var [form, setType] = useState({
-    selectedOption: 'chart',
-    totals: 0
-  }); // Often, you just want to get a hold of the DOM and go nuts.
+  var svgRef = /*#__PURE__*/createRef(); // Often, you just want to get a hold of the DOM and go nuts.
   // Here, you can do that with createRef, and the useEffect hook.
 
   useEffect(() => {
-    render(svgRef); // setType({ selectedOption: 'chart' , totals: totals});
-  }, [props, form, setType, orderDesc]);
-
-  var groupData = (data, total) => {
-    var cumulative = 0;
-
-    var _data = data.map(d => {
-      cumulative += d.metricpossiblevalues;
-      return {
-        metricpossiblevalues: d.metricpossiblevalues,
-        cumulative: cumulative - d.metricpossiblevalues,
-        metricvalue: d.metricvalue,
-        company: d.company,
-        metricpossible: d.metricpossible,
-        percent: (d.metricpossiblevalues / total * 100).toFixed(2)
-      };
-    }).filter(d => d.metricpossiblevalues > 0);
-
-    return _data;
-  };
+    render(svgRef);
+  }, [props, orderDesc, colorScheme, bulletColorScheme]);
 
   var render = svgRef => {
+    // custom colors theme
+    var customColors;
+    var colorsValues = categorialSchemeRegistry.values();
+    var filterColors = colorsValues.filter(c => c.id === colorScheme);
+    var findLegendColorScheme = colorsValues.filter(c => c.id === bulletColorScheme);
+
+    if (filterColors[0]) {
+      customColors = [...filterColors[0].colors];
+    }
+
+    var legendBulletColor = [];
+
+    if (findLegendColorScheme[0]) {
+      legendBulletColor = [...findLegendColorScheme[0].colors];
+    }
+
+    var groupData = (data, total) => {
+      var cumulative = 0;
+
+      var _data = data.map(d => {
+        cumulative += d.metricpossiblevalues;
+        return {
+          metricpossiblevalues: d.metricpossiblevalues,
+          cumulative: cumulative - d.metricpossiblevalues,
+          metricvalue: d.metricvalue,
+          company: d.company,
+          metricpossible: d.metricpossible,
+          percent: (d.metricpossiblevalues / total * 100).toFixed(2)
+        };
+      }).filter(d => d.metricpossiblevalues > 0);
+
+      return _data;
+    };
+
     var config = {
       f: d3.format('.1f'),
       margin: {
@@ -129,8 +113,7 @@ export default function SupersetBulletChartV4(props) {
     var w = width - margin.left - margin.right;
     var h = height - margin.top - margin.bottom;
     var halfBarHeight = barHeight;
-    var lineHeight = 1.1;
-    var legendBulletColor = legendColors; //
+    var lineHeight = 1.1; //
 
     var getMetricPossible = data => {
       var rectangles = selection.selectAll('rect') || null;
@@ -141,7 +124,8 @@ export default function SupersetBulletChartV4(props) {
           wrap(this, parseFloat(filterVal[0].attributes[4].value) + 5);
         }
       });
-    };
+    }; // wrap text
+
 
     var wrap = (txt, data) => {
       var width = data;
@@ -152,24 +136,25 @@ export default function SupersetBulletChartV4(props) {
       var lineNumber = 0;
       var lineHeight = 1.1; // ems
 
-      var x = text.attr("x");
-      var y = text.attr("y");
-      var dy = parseFloat(text.attr("dy")) || 0;
-      var tspan = text.text(null).append("tspan").attr("x", x).attr("y", y).attr("dy", dy + "em");
+      var x = text.attr('x');
+      var y = text.attr('y');
+      var dy = parseFloat(text.attr('dy')) || 0;
+      var tspan = text.text(null).append('tspan').attr('x', x).attr('y', y).attr('dy', dy + 'em');
 
       while (word = words.pop()) {
         line.push(word);
-        tspan.text(line.join(" "));
+        tspan.text(line.join(' '));
         var tspanWidth = tspan.node().getComputedTextLength() + 1;
 
         if (tspanWidth > width) {
           line.pop();
-          tspan.text(line.join(" "));
+          tspan.text(line.join(' '));
           line = [word];
-          tspan = text.append("tspan").attr("x", x).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+          tspan = text.append('tspan').attr('x', x).attr('y', y).attr('dy', ++lineNumber * lineHeight + dy + 'em').text(word);
         }
       }
-    };
+    }; // find unique metric value
+
 
     function creatUniqueArray() {
       var unique = [];
@@ -185,7 +170,8 @@ export default function SupersetBulletChartV4(props) {
       }
 
       return distinct;
-    }
+    } // find unique metric value
+
 
     function createCompanyArray() {
       var unique = [];
@@ -205,7 +191,8 @@ export default function SupersetBulletChartV4(props) {
       }
 
       return distinct;
-    }
+    } // find unique metric value
+
 
     function createUniqueMatricValue() {
       var unique = [];
@@ -229,7 +216,6 @@ export default function SupersetBulletChartV4(props) {
 
     var getIndicatorColor = data => {
       var findMatricValue = uniqueMatricValue.filter(d => d.metricvalue === data.metricpossible);
-      console.log('findMatricValue', findMatricValue);
 
       if (findMatricValue.length === 1) {
         return findMatricValue[0].color;
@@ -249,6 +235,7 @@ export default function SupersetBulletChartV4(props) {
 
     var getIndicatorColorTwo = data => {
       var matchingMatricValue = uniqueMatricValue.filter(d => d.metricvalue === data.metricpossible);
+      console.log('matchingMatricValue', matchingMatricValue);
       return matchingMatricValue.length === 3 ? matchingMatricValue[2].color : '';
     }; // draw indicator conditionally
 
@@ -269,13 +256,12 @@ export default function SupersetBulletChartV4(props) {
     };
 
     var total = d3.sum(resultset, d => d.metricpossiblevalues);
-    totals = total;
     orderDesc ? resultset.sort((a, b) => a.orderby - b.orderby) : resultset.sort((a, b) => b.orderby - a.orderby); // const middleIndex = resultset.indexOf(resultset[Math.round((resultset.length - 1) / 2)]);
 
     var middle = resultset.length / 2 + (resultset.length % 2 === 0 ? 1 : resultset.length % 2);
     var middleIndex = parseInt(middle + '');
 
-    var _data = groupData(resultset, total); //getPoints to draw ppolylines
+    var _data = groupData(resultset, total); //getPoints to draw ppolylines and flip according to x position to left/right
 
 
     var getPoints = (d, index) => {
@@ -301,8 +287,7 @@ export default function SupersetBulletChartV4(props) {
       }
 
       return pointFirstX + " " + pointFirstY + " " + pointSecondX + " " + pointSecondY + " " + pointThirdX + " " + pointThirdY;
-    }; // get text position
-    //getPoints to draw polylines
+    }; //getPoints to draw text alignment
 
 
     var getTextAlignment = (d, index) => {
@@ -316,7 +301,8 @@ export default function SupersetBulletChartV4(props) {
       }
 
       return alignPos;
-    };
+    }; // find polyline endX position to place text at same X postion
+
 
     var getPolylineEndX = (d, index) => {
       var polylines = selection.selectAll('polyline') || null;
@@ -324,7 +310,8 @@ export default function SupersetBulletChartV4(props) {
       var pointArr = filterVal[0][0].attributes[1].value.split(' ');
       var xCordinate = index < middleIndex ? pointArr[pointArr.length - 2] + 7 : pointArr[pointArr.length - 2] - 5;
       return xCordinate;
-    };
+    }; // find polyline endY position to place text at same Y postion
+
 
     var getPolylineEndY = (d, index) => {
       var polyLineHeight = 20;
@@ -336,8 +323,7 @@ export default function SupersetBulletChartV4(props) {
     var xScale = d3Scale.scaleLinear().domain([0, total]).range([0, w]); // create svg in passed in div
     // d3.select('svg').remove();
 
-    var selection = d3.select(svgRef.current) // .append('svg')
-    .attr('width', w).attr('height', height).append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); // stack rect for each data value
+    var selection = d3.select(svgRef.current).attr('width', w).attr('height', height).append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'); // stack rect for each data value
 
     d3.selectAll('rect').remove();
     selection.selectAll('rect').data(_data).enter().append('rect').attr('class', 'rect-stacked').attr('x', d => xScale(d.cumulative) - 12).attr('y', h / 2 - halfBarHeight).attr('height', barHeight).attr('width', d => xScale(d.metricpossiblevalues)).style('fill', (d, i) => customColors[i + 4]).text(d => f(d.percent) < 5 ? f(d.percent) + '%, ' + ' ' + d.metricpossible : f(d.percent) + '%'); // add image on top of bar(indicator)
@@ -353,52 +339,25 @@ export default function SupersetBulletChartV4(props) {
     selection.selectAll('.text-percent').data(_data).enter().append('text').attr('class', 'text-percent').attr('text-anchor', 'middle').attr('font-size', '11px').attr('x', d => xScale(d.cumulative) + xScale(d.metricpossiblevalues) / 2 - 12).attr('y', h / 2 - halfBarHeight / 2.5).text(d => f(d.percent) > 5 ? f(d.percent) + '%' : ''); // add the labels bellow bar
 
     d3.selectAll('.text-label').remove();
-    selection.selectAll('.text-label').data(_data).enter().append('text').attr('class', 'text-label') //  .attr('text-anchor', (d:any)=> f(d.percent) < 5 ? 'end' :'middle')
-    .attr('text-anchor', 'middle').attr('font-size', '9px').attr('x', d => xScale(d.cumulative) + xScale(d.metricpossiblevalues) / 2 - 12).attr('y', h / 2 + 15).style('fill', '#000').attr('width', d => xScale(d.metricpossiblevalues) / 3).text(d => f(d.percent) < 5 ? '' : d.metricpossible).call(getMetricPossible); // .style('fill', (d, i) => customColors[i])
-    // draw ppolylines
+    selection.selectAll('.text-label').data(_data).enter().append('text').attr('class', 'text-label').attr('text-anchor', 'middle').attr('font-size', '9px').attr('x', d => xScale(d.cumulative) + xScale(d.metricpossiblevalues) / 2 - 12).attr('y', h / 2 + 15).style('fill', '#000').attr('width', d => xScale(d.metricpossiblevalues) / 3).text(d => f(d.percent) < 5 ? '' : d.metricpossible).call(getMetricPossible); // draw ppolylines
 
     d3.selectAll('polyline').remove();
-    selection.selectAll('.polyline').data(_data).enter().append('polyline').style('stroke', 'black').style('fill', 'none').attr('stroke-width', 0.6).attr('points', (d, index) => f(d.percent) < 5 ? getPoints(d, index) : ''); // .attr('points', (d: any, index: any) =>  getPoints(d, index));
-    // append text at the end of line
+    selection.selectAll('.polyline').data(_data).enter().append('polyline').style('stroke', 'black').style('fill', 'none').attr('stroke-width', 0.6).attr('points', (d, index) => f(d.percent) < 5 ? getPoints(d, index) : ''); // append text at the end of line
 
     d3.selectAll('.line-text').remove();
-    selection.selectAll('.line-text').data(_data).enter().append('text').attr('class', 'line-text') // .attr('text-anchor', (d: any, index: any) => index < middleIndex ? 'start' : 'midddle')
-    .attr('text-anchor', (d, index) => getTextAlignment(d, index)).attr('font-size', '11px').attr('x', (d, index) => isNaN(getPolylineEndX(d, index)) ? '' : getPolylineEndX(d, index)).attr('y', (d, index) => getPolylineEndY(d, index) + 2).text(d => f(d.percent) < 5 ? f(d.percent) + '%, ' + ' ' + d.metricpossible : ''); // Legend drawing
-    // Add one dot in the legend for each name.
+    selection.selectAll('.line-text').data(_data).enter().append('text').attr('class', 'line-text').attr('text-anchor', (d, index) => getTextAlignment(d, index)).attr('font-size', '11px').attr('x', (d, index) => isNaN(getPolylineEndX(d, index)) ? '' : getPolylineEndX(d, index)).attr('y', (d, index) => getPolylineEndY(d, index) + 2).text(d => f(d.percent) < 5 ? f(d.percent) + '%, ' + ' ' + d.metricpossible : ''); // Legends drawing
 
     var size = 10;
     d3.selectAll('legend-circle').remove();
-    selection.selectAll(".legend-circle").data(uniqueCompanies).enter().append("rect").attr("x", width - 230).attr("y", (d, i) => height - 100 + i * (size + 5)) // 100 is where the first dot appears. 25 is the distance between dots
-    .attr("width", size).attr("height", size).style("fill", (d, index) => d.color); // Add one dot in the legend for each name.
+    selection.selectAll('.legend-circle').data(uniqueCompanies).enter().append('rect').attr('x', width - 230).attr('y', (d, i) => height - 100 + i * (size + 5)) // 100 is where the first dot appears. 25 is the distance between dots
+    .attr('width', size).attr('height', size).style('fill', (d, index) => d.color); // legend labels
 
     d3.selectAll('.legend-label').remove();
-    selection.selectAll(".legend-label").data(uniqueCompanies).enter().append("text").attr('class', 'legend-label').attr('font-size', '11px').attr("x", width - 225 + size * 1.2).attr("y", (d, i) => height - 92 + i * (size + 6)) // 100 is where the first dot appears. 25 is the distance between dots
-    .style("fill", (d, index) => d.color) // .text((d: any) => d.company + ':' + d.metricvalue)
-    .text(d => d.company).attr("text-anchor", "left");
+    selection.selectAll('.legend-label').data(uniqueCompanies).enter().append('text').attr('class', 'legend-label').attr('font-size', '11px').attr('x', width - 225 + size * 1.2).attr('y', (d, i) => height - 92 + i * (size + 6)) // 100 is where the first dot appears. 25 is the distance between dots
+    .style('fill', (d, index) => d.color).text(d => d.company).attr('text-anchor', 'left');
   };
 
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
-    type: "radio",
-    id: "chart",
-    value: "chart",
-    name: "optionGroup",
-    checked: form.selectedOption === 'chart',
-    onClick: e => onSiteChanged('', "chart")
-  }), " ", /*#__PURE__*/React.createElement("label", {
-    htmlFor: "chart",
-    style: {
-      verticalAlign: 'middle'
-    }
-  }, "chart one")), form.selectedOption === "chart" ? /*#__PURE__*/React.createElement("svg", {
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("svg", {
     ref: svgRef
-  }) : /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: height + "px",
-      fontSize: '10em',
-      fontWeight: 'bold'
-    }
-  }, form.totals));
+  }));
 }
