@@ -26,7 +26,7 @@ var categorialSchemeRegistry = getCategoricalSchemeRegistry(); // The following 
 // imported from @superset-ui/core. For variables available, please visit
 // https://github.com/apache-superset/superset-ui/blob/master/packages/superset-ui-core/src/style/index.ts
 
-/* const Styles = styled.div<Superset2CustomChartBulletStylesProps>`
+/* const Styles = styled.div<SupersetBulletChartV4StylesProps>`
   background-color: ${({ theme }) => theme.colors.secondary.light5};
    padding: ${({ theme }) => theme.gridUnit * 4}px;
    border-radius: ${({ theme }) => theme.gridUnit * 2}px;
@@ -42,7 +42,7 @@ var categorialSchemeRegistry = getCategoricalSchemeRegistry(); // The following 
  *  * FormData (your controls!) provided as props by transformProps.ts
  */
 
-export default function Superset2CustomChartBullet(props) {
+export default function SupersetBulletChartV4(props) {
   // height and width are the height and width of the DOM element as it exists in the dashboard.
   // There is also a `data` prop, which is, of course, your DATA 🎉
   var {

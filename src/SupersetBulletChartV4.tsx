@@ -16,9 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
- import React, { useEffect, useState, createRef } from 'react';
+ import React, { useEffect, createRef } from 'react';
  import { getCategoricalSchemeRegistry } from '@superset-ui/core';
- import { Superset2CustomChartBulletProps } from './types';
+ import { SupersetBulletChartV4Props } from './types';
  import * as d3 from 'd3';
  import * as d3Scale from 'd3-scale';
  
@@ -30,7 +30,7 @@
  // imported from @superset-ui/core. For variables available, please visit
  // https://github.com/apache-superset/superset-ui/blob/master/packages/superset-ui-core/src/style/index.ts
  
- /* const Styles = styled.div<Superset2CustomChartBulletStylesProps>`
+ /* const Styles = styled.div<SupersetBulletChartV4StylesProps>`
    background-color: ${({ theme }) => theme.colors.secondary.light5};
     padding: ${({ theme }) => theme.gridUnit * 4}px;
     border-radius: ${({ theme }) => theme.gridUnit * 2}px;
@@ -46,8 +46,8 @@
   *  * FormData (your controls!) provided as props by transformProps.ts
   */
  
- export default function Superset2CustomChartBullet(
-   props: Superset2CustomChartBulletProps,
+ export default function SupersetBulletChartV4(
+   props: SupersetBulletChartV4Props,
  ) {
    // height and width are the height and width of the DOM element as it exists in the dashboard.
    // There is also a `data` prop, which is, of course, your DATA 🎉
