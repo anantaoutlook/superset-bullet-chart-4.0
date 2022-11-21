@@ -25,12 +25,12 @@ npm i -S ../../superset-bullet-chart-v4
 After this edit the `superset-frontend/src/visualizations/presets/MainPreset.js` and make the following changes:
 
 ```js
-import { SupersetBulletChartV3 } from 'superset-bullet-chart-v4';
+import { SupersetBulletChartV4 } from 'superset-bullet-chart-v4';
 ```
 
 to import the plugin and later add the following to the array that's passed to the `plugins` property:
 ```js
-new SupersetBulletChartV3().configure({ key: 'superset-bullet-chart-v4' }),
+new SupersetBulletChartV4().configure({ key: 'superset-bullet-chart-v4' }),
 ```
 
 After that the plugin should show up when you run Superset, e.g. the development server:
